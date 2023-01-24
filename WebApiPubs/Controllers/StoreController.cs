@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Policy;
+using System.Xml.Linq;
 using WebApiPubs.Models;
 
 namespace WebApiPubs.Controllers
@@ -27,7 +28,7 @@ namespace WebApiPubs.Controllers
         }
 
         //GET BY ID
-        [HttpGet("{id}")]
+        [HttpGet("id/{id}")]
         public ActionResult<Stores> GetByIdStore(string id)
         {
             Stores store = (from s in context.Stores
@@ -41,7 +42,7 @@ namespace WebApiPubs.Controllers
         }
 
         //GET BY NAME
-        [HttpGet("{name}")]
+        [HttpGet("name/{name}")]
         public ActionResult<Stores> GetByNameStore(string name)
         {
             Stores store = (from s in context.Stores
@@ -55,17 +56,32 @@ namespace WebApiPubs.Controllers
         }
 
         //GET BY ZIP
-        [HttpGet("{zip}")]
-        public ActionResult<IEnumerable<Stores>> GetByZip()
+        [HttpGet("zip/{zip}")]
+        public ActionResult<Stores> GetByZip(string zip)
         {
-            return context.Stores.ToList();
+            Stores store = (from s in context.Stores
+                            where s.Zip == zip
+                            select s).SingleOrDefault();
+            if (store == null)
+            {
+                return NotFound();
+            }
+            return store;
         }
 
         //GET BY CITYSTATE
-        [HttpGet("{citystate}")]
-        public ActionResult<IEnumerable<Stores>> GetByCityState()
+        [HttpGet("citystate/{city}/{state}")]
+        public ActionResult<IEnumerable<Stores>> GetByCityState(string city, string state)
         {
-            return null;
+           List<Stores> store = (from s in context.Stores
+                         where s.City == city && s.State == state
+                         select s).ToList();
+            if(store.Count() == 0)
+            {
+                return NotFound();
+            }
+
+            return store;
         }
 
         //POST
@@ -82,7 +98,7 @@ namespace WebApiPubs.Controllers
         }
 
         //PUT
-        [HttpPut]
+        [HttpPut("{id}")]
         public ActionResult PutStore(string id, [FromBody] Stores store)
         {
             if (id != store.StorId)
@@ -96,7 +112,7 @@ namespace WebApiPubs.Controllers
         }
 
         //DELETE
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public ActionResult<Stores> Delete(string id)
         {
             var store = (from a in context.Stores
